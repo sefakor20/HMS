@@ -1,0 +1,129 @@
+<?php
+require_once '../../Connection/config.php';
+require_once '../../Methods/Hostel.php';
+require_once '../../Methods/functions.php';
+
+if (empty($_SESSION['student'])) {
+    header('location: ../../Admin/pages/login.php');
+}
+
+$total = getStudentDeclinedReservationTotal($connection, $_SESSION['student']);
+
+
+//pagination
+$pagination = $total->total;
+
+$page = (int)$_GET['page'];
+$rows = 20;
+
+if ($page < 1) {
+    $page = 1;
+}
+
+$pages = ceil($pagination / $rows);
+
+if (($page > $pages) && ($pages > 1)) {
+    $page = $pages;
+}
+
+$offset = ($page - 1) * $rows;
+$declined =  getStudentAllDeclinedReservation($connection, $_SESSION['student'], $rows, $offset);
+
+if (($page - 1) >= 1) {
+    $prevPage = $page - 1;
+} else {
+    $prevPage = 1;
+}
+
+//getting next page value
+if (($page + 1) <= $pages) {
+    $nextPage = $page + 1;
+} else {
+    $nextPage = $pages;
+}
+
+
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <?php include '../includes/meta.php'; ?>
+
+    <title>Student - All Declined</title>
+
+    <?php include '../includes/links.php'; ?>
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        <?php include '../includes/nav.php'; ?>
+
+        <div id="page-wrapper">
+            <!-- /.row -->
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="top" style="margin-top:45px;"></div>
+                    <?php include '../includes/alert.php'; ?>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 class="panel-title">All Declined</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Hostel Name</th>
+                                            <th>Location</th>
+                                            <th>My Note</th>
+                                            <th>Admin Notice</th>
+                                            <th>Notification</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($declined as $item) : ?>
+                                            <tr>
+                                                <td><?php echo $item['hostel']; ?></td>
+                                                <td><?php echo $item['location']; ?></td>
+                                                <td><?php echo $item['short_note']; ?></td>
+                                                <td><?php echo $item['admin_short_note']; ?></td>
+                                                <td>
+                                                    <i class="label label-danger"><?php echo $item['note']; ?> <i class="fa fa-thumbs-down"> </i> &nbsp;</i>
+                                                </td>
+                                                <td>
+                                                    <?php if ($item['stat'] == 1) { ?>
+                                                        <i class="label label-success"><?php echo $item['status']; ?></i>
+                                                    <?php } else { ?>
+                                                        <i class="label label-danger"><?php echo $item['status']; ?></i>
+                                                    <?php } ?>
+                                                </td>
+                                                <td><?php echo getDateFormat($item['created_at']); ?></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- /#page-wrapper -->
+
+    </div>
+    <!-- /#wrapper -->
+
+    <?php include '../includes/scripts.php'; ?>
+
+</body>
+
+</html>
